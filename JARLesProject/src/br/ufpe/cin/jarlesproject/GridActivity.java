@@ -9,11 +9,12 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
 import android.widget.GridView;
 import android.widget.TextView;
 
-public class GridActivity extends ActionBarActivity {
+public class GridActivity extends ActionBarActivity implements OnClickListener{
 
 	GridView mGridView;
 	GridAdapter mAdapter;
@@ -21,66 +22,73 @@ public class GridActivity extends ActionBarActivity {
 	int mDarkColor;
 	float w = 0, h = 0;
 	List<Integer> mRoute;
-	
-	
+	OnTouchListener mGridTouch;
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		
+
 		setContentView(R.layout.activity_grid);
 		mGridView = (GridView) findViewById(R.id.grid);
 		mAdapter = new GridAdapter(this);
 		mRoute = new ArrayList<Integer>();
 		mGridView.setAdapter(mAdapter);
 		
+		findViewById(R.id.execute).setOnClickListener(this);
+	    findViewById(R.id.save).setOnClickListener(this);
+	    findViewById(R.id.clear).setOnClickListener(this);
+
 		mDarkColor = getResources().getColor(android.R.color.background_dark);
-		
-		mGridView.setOnTouchListener(new OnTouchListener() {
-			
+
+		mGridTouch = new OnTouchListener() {
+
 			@Override
 			public boolean onTouch(View v, MotionEvent event) {
 
 				float x = event.getX();
 				float y = event.getY();
-				
-				if(event.getAction() == event.ACTION_DOWN){
+
+				if (event.getAction() == event.ACTION_DOWN) {
 					View vi = mGridView.getChildAt(0);
 					w = vi.getMeasuredWidth();
 					h = vi.getMeasuredHeight();
 				}
-				
-				int column = (int)x / (int)w;
-				int row = (int)y / (int)h;
-				
+
+				int column = (int) x / (int) w;
+				int row = (int) y / (int) h;
+
 				int index = (row * mGridView.getNumColumns()) + column;
-								
+
 				View selectedView = mGridView.getChildAt(index);
-				
-				if(selectedView != null){
-					TextView txtView = ((TextView)selectedView.findViewById(R.id.index));
+
+				if (selectedView != null) {
+					TextView txtView = ((TextView) selectedView
+							.findViewById(R.id.index));
 					txtView.setTextColor(mDarkColor);
-					
-					if(event.getAction() == event.ACTION_DOWN){
+
+					if (event.getAction() == event.ACTION_DOWN) {
 						startIndex = index;
-						selectedView.setBackgroundResource(R.drawable.background_start);
+						selectedView
+								.setBackgroundResource(R.drawable.background_start);
+					} else if (event.getAction() == event.ACTION_UP) {
+						selectedView
+								.setBackgroundResource(R.drawable.background_finish);
+						mGridView.setOnTouchListener(null);
+					} else {
+						if (index != startIndex)
+							selectedView
+									.setBackgroundResource(R.drawable.background_selected);
 					}
-					else if(event.getAction() == event.ACTION_UP){
-						selectedView.setBackgroundResource(R.drawable.background_finish);
-					}
-					else{
-						if(index != startIndex)
-							selectedView.setBackgroundResource(R.drawable.background_selected);
-					}
-					
-					if(!mRoute.contains(index)){
+
+					if (!mRoute.contains(index)) {
 						mRoute.add(index);
 					}
 				}
-				
 				return false;
 			}
-		});
+		};
 		
+		mGridView.setOnTouchListener(mGridTouch);
 	}
 
 	@Override
@@ -101,6 +109,21 @@ public class GridActivity extends ActionBarActivity {
 			return true;
 		}
 		return super.onOptionsItemSelected(item);
+	}
+
+	@Override
+	public void onClick(View v) {
+		switch(v.getId()){
+			case R.id.execute:  
+				break;
+			case R.id.save: 
+				break;
+			case R.id.clear: 
+					mGridView.setOnTouchListener(mGridTouch);
+					mAdapter.notifyDataSetChanged();
+				break;
+		}
+		
 	}
 
 }
