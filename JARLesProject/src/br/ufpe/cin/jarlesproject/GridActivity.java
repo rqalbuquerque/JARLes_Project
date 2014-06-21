@@ -1,8 +1,10 @@
 package br.ufpe.cin.jarlesproject;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -15,8 +17,10 @@ public class GridActivity extends ActionBarActivity {
 
 	GridView mGridView;
 	GridAdapter mAdapter;
+	int startIndex;
 	int mDarkColor;
 	float w = 0, h = 0;
+	List<Integer> mRoute;
 	
 	
 	@Override
@@ -26,6 +30,7 @@ public class GridActivity extends ActionBarActivity {
 		setContentView(R.layout.activity_grid);
 		mGridView = (GridView) findViewById(R.id.grid);
 		mAdapter = new GridAdapter(this);
+		mRoute = new ArrayList<Integer>();
 		mGridView.setAdapter(mAdapter);
 		
 		mDarkColor = getResources().getColor(android.R.color.background_dark);
@@ -48,22 +53,33 @@ public class GridActivity extends ActionBarActivity {
 				int row = (int)y / (int)h;
 				
 				int index = (row * mGridView.getNumColumns()) + column;
-				
-				Log.v("TSS", "Index: " + index);
-				
+								
 				View selectedView = mGridView.getChildAt(index);
 				
 				if(selectedView != null){
 					TextView txtView = ((TextView)selectedView.findViewById(R.id.index));
 					txtView.setTextColor(mDarkColor);
 					
-					selectedView.setActivated(true);
+					if(event.getAction() == event.ACTION_DOWN){
+						startIndex = index;
+						selectedView.setBackgroundResource(R.drawable.background_start);
+					}
+					else if(event.getAction() == event.ACTION_UP){
+						selectedView.setBackgroundResource(R.drawable.background_finish);
+					}
+					else{
+						if(index != startIndex)
+							selectedView.setBackgroundResource(R.drawable.background_selected);
+					}
+					
+					if(!mRoute.contains(index)){
+						mRoute.add(index);
+					}
 				}
 				
 				return false;
 			}
 		});
-		
 		
 	}
 
