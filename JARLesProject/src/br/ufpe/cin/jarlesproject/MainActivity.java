@@ -13,11 +13,16 @@ import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.os.Build;
 
-public class MainActivity extends ActionBarActivity {
 
+//Primeira atividade a ser chamada quando o app é iniciado
+public class MainActivity extends ActionBarActivity {
+	
+	//Método de criação da atividade, 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
+		//bundle -> usado para passar valores entre atividades
 		super.onCreate(savedInstanceState);
+		//Seta o layout da primeira tela
 		setContentView(R.layout.activity_main);
 
 		if (savedInstanceState == null) {
@@ -26,7 +31,7 @@ public class MainActivity extends ActionBarActivity {
 		}
 	}
 	    
-	//Call GridActivity
+	//Ao clicar em "new grid" este método é chamado
 	public void draw_new_grid(View view){
 		Intent i = new Intent(this, GridActivity.class);
 		startActivity(i);

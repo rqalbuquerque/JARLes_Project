@@ -17,7 +17,7 @@ public class GridAdapter extends BaseAdapter {
 
 	@Override
 	public int getCount() {
-		return 200;
+		return 100;
 	}
 
 	@Override

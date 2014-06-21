@@ -6,6 +6,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.GridView;
 
+//Atividade chamada após o usuário apertar o botão "new grid"
 public class GridActivity extends ActionBarActivity {
 
 	private GridView mGridView;
@@ -15,7 +16,9 @@ public class GridActivity extends ActionBarActivity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_grid);
 		
+		//Obtem o gridView de activity_grid
 		mGridView = (GridView) findViewById(R.id.grid);
+		//
 		mGridView.setAdapter(new GridAdapter(this));
 	}
 
