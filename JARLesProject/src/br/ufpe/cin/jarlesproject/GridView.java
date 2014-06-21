@@ -18,30 +18,6 @@ public class GridView extends View {
     @Override
     protected void onDraw(Canvas canvas) {
         
-    	/*
-    	Paint background = new Paint();
-        background.setColor(111);
-        
-        Paint cell = new Paint();
-        cell.setColor(0);
-        
-        
-        // draw background
-        canvas.drawRect(0, 0, getWidth(), getHeight(), background);
-        
-        // draw cells
-        for (int h = 0; h < HEIGHT; h++) {
-            for (int w = 0; w < WIDTH; w++) {
-                if (GridActivity.getGridArray()[h][w] != 0) {
-                    canvas.drawRect(
-                        w * CELL_SIZE, 
-                        h * CELL_SIZE, 
-                        (w * CELL_SIZE) +CELL_SIZE,
-                        (h * CELL_SIZE) +CELL_SIZE,
-                        cell);
-                }
-            }
-        }
-        */
+    	
     }
 }
