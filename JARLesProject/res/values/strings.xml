@@ -10,4 +10,7 @@
     <string name="exit_button">Exit</string>
     <string name="about_button">About</string>
     <string name="title_activity_grid">Draw New Grid</string>
+    <string name="title_activity_load">LoadActivity</string>
+    <string name="hello_world">Hello world!</string>
+
 </resources>

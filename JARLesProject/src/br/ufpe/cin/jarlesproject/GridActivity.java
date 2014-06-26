@@ -62,28 +62,25 @@ public class GridActivity extends ActionBarActivity implements OnClickListener {
 				View selectedView = mGridView.getChildAt(index);
 
 				if (selectedView != null) {
-					TextView txtView = ((TextView) selectedView
-							.findViewById(R.id.index));
+					TextView txtView = ((TextView) selectedView.findViewById(R.id.index));
 					txtView.setTextColor(mDarkColor);
 
 					if (event.getAction() == event.ACTION_DOWN) {
 						mStartIndex = index;
-						selectedView
-								.setBackgroundResource(R.drawable.background_start);
+						selectedView.setBackgroundResource(R.drawable.background_start);
 					} else if (event.getAction() == event.ACTION_UP) {
-						selectedView
-								.setBackgroundResource(R.drawable.background_finish);
+						selectedView.setBackgroundResource(R.drawable.background_finish);
 						mGridView.setOnTouchListener(null);
 					} else {
 						if (index != mStartIndex)
-							selectedView
-									.setBackgroundResource(R.drawable.background_selected);
+							selectedView.setBackgroundResource(R.drawable.background_selected);
 					}
 
 					if (!mRoute.contains(index)) {
 						mRoute.add(index);
 					}
 				}
+				
 				return false;
 			}
 		};

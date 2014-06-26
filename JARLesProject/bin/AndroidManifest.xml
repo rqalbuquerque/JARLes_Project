@@ -26,6 +26,10 @@
             android:name="br.ufpe.cin.jarlesproject.GridActivity"
             android:label="@string/title_activity_grid" >
         </activity>
+        <activity
+            android:name="br.ufpe.cin.jarlesproject.LoadActivity"
+            android:label="@string/title_activity_load" >
+        </activity>
     </application>
 
 </manifest>

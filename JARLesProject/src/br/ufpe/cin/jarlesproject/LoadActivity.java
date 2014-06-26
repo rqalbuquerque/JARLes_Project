@@ -1,50 +1,34 @@
 package br.ufpe.cin.jarlesproject;
 
-import android.content.Intent;
-import android.os.Bundle;
-import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.ActionBar;
+import android.support.v4.app.Fragment;
+import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.os.Build;
 
+public class LoadActivity extends ActionBarActivity {
 
-//Primeira atividade a ser chamada quando o app é iniciado
-public class MainActivity extends ActionBarActivity {
-	
-	//Método de criação da atividade, 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
-		//bundle -> usado para passar valores entre atividades
 		super.onCreate(savedInstanceState);
-		//Seta o layout da primeira tela
-		setContentView(R.layout.activity_main);
+		setContentView(R.layout.activity_load);
 
 		if (savedInstanceState == null) {
 			getSupportFragmentManager().beginTransaction()
 					.add(R.id.container, new PlaceholderFragment()).commit();
 		}
 	}
-	    
-	//Ao clicar em "new grid" este método é chamado
-	public void draw_new_grid(View view){
-		Intent i = new Intent(this, GridActivity.class);
-		startActivity(i);
-	}
-	
-	//Ao clicar em "new grid" este método é chamado
-	public void load_grid(View view){
-		Intent i = new Intent(this, LoadActivity.class);
-		startActivity(i);
-	}
-	
+
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 
 		// Inflate the menu; this adds items to the action bar if it is present.
-		getMenuInflater().inflate(R.menu.main, menu);
+		getMenuInflater().inflate(R.menu.load, menu);
 		return true;
 	}
 
@@ -71,7 +55,7 @@ public class MainActivity extends ActionBarActivity {
 		@Override
 		public View onCreateView(LayoutInflater inflater, ViewGroup container,
 				Bundle savedInstanceState) {
-			View rootView = inflater.inflate(R.layout.fragment_main, container,
+			View rootView = inflater.inflate(R.layout.fragment_load, container,
 					false);
 			return rootView;
 		}

@@ -37,17 +37,13 @@
         <Button	android:id="@+id/load_grid_button"
             	android:layout_width="fill_parent"
             	android:layout_height="fill_parent"
-            	android:text="@string/load_grid_button"/>
+            	android:text="@string/load_grid_button"
+				android:onClick="load_grid"/>
         
         <Button	android:id="@+id/about_button"
             	android:layout_width="fill_parent"
             	android:layout_height="fill_parent"
             	android:text="@string/about_button"/>
-        
-        <Button	android:id="@+id/exit_button"
-            	android:layout_width="fill_parent"
-            	android:layout_height="fill_parent"
-            	android:text="@string/exit_button"/>
         
     </LinearLayout>
 </LinearLayout>
