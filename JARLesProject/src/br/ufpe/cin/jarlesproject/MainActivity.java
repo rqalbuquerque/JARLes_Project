@@ -9,11 +9,12 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 
 
 //Primeira atividade a ser chamada quando o app é iniciado
 public class MainActivity extends ActionBarActivity {
-	
+	public final static String EXTRA_MESSAGE = "com.example.myfirstapp.MESSAGE";
 	//Método de criação da atividade, 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {

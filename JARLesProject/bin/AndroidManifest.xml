@@ -30,6 +30,10 @@
             android:name="br.ufpe.cin.jarlesproject.LoadActivity"
             android:label="@string/title_activity_load" >
         </activity>
+        <activity
+            android:name="br.ufpe.cin.jarlesproject.SaveActivity"
+            android:label="@string/title_activity_save" >
+        </activity>
     </application>
 
 </manifest>
