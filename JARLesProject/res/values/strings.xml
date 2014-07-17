@@ -13,5 +13,6 @@
     <string name="title_activity_load">LoadActivity</string>
     <string name="hello_world">Hello world!</string>
     <string name="title_activity_save">SaveActivity</string>
+    <string name="title_activity_save_route">SaveRouteActivity</string>
 
 </resources>

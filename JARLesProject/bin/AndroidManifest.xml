@@ -34,6 +34,13 @@
             android:name="br.ufpe.cin.jarlesproject.SaveActivity"
             android:label="@string/title_activity_save" >
         </activity>
+        <activity
+            android:name="br.ufpe.cin.jarlesproject.SaveRouteActivity"
+            android:label="@string/title_activity_save_route" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="br.ufpe.cin.jarlesproject.GridActivity" />
+        </activity>
     </application>
 
 </manifest>

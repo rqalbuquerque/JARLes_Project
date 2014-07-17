@@ -137,7 +137,7 @@ public class GridActivity extends ActionBarActivity implements OnClickListener {
 	}
 	
 	private void sendMessage(String message) {
-		Intent intent = new Intent(this, SaveActivity.class);
+		Intent intent = new Intent(this, SaveRouteActivity.class);
 		intent.putExtra(EXTRA_MESSAGE, message);
 		startActivity(intent);
 	}
