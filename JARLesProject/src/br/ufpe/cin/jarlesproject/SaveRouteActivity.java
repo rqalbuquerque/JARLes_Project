@@ -1,5 +1,6 @@
 package br.ufpe.cin.jarlesproject;
 
+import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -12,11 +13,11 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.EditText;
 
 public class SaveRouteActivity extends ActionBarActivity {
 
+	final Context context = this;
 	String message;
 	
 	@Override
@@ -89,7 +90,16 @@ public class SaveRouteActivity extends ActionBarActivity {
 		ed.putString(nome, rota);
 		// Grava efetivamente as alterações.
 		ed.commit();
-		
+
+		AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(context);
+		// set title
+		alertDialogBuilder.setTitle("JARLes");
+		// set dialog message
+		alertDialogBuilder.setMessage("Rota '" + nome + "' salva com sucesso!");
+		// create alert dialog
+		AlertDialog alertDialog = alertDialogBuilder.create();
+		// show it
+		alertDialog.show();
 	}
 
 }

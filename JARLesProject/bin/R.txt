@@ -244,10 +244,11 @@ int id action_context_bar 0x7f05001d
 int id action_menu_divider 0x7f050016
 int id action_menu_presenter 0x7f050017
 int id action_mode_close_button 0x7f050024
-int id action_settings 0x7f050049
+int id action_settings 0x7f05004b
 int id activity_chooser_view_content 0x7f050025
 int id always 0x7f05000b
 int id beginning 0x7f050011
+int id caixaDialogo 0x7f050048
 int id checkbox 0x7f05002d
 int id clear 0x7f050040
 int id collapseActionView 0x7f05000d
@@ -267,7 +268,7 @@ int id homeAsUp 0x7f050005
 int id icon 0x7f05002a
 int id ifRoom 0x7f05000a
 int id image 0x7f050027
-int id index 0x7f050048
+int id index 0x7f050049
 int id listMode 0x7f050001
 int id listView1 0x7f050041
 int id list_item 0x7f050029
@@ -300,6 +301,7 @@ int id showTitle 0x7f050006
 int id split_action_bar 0x7f05001e
 int id submit_area 0x7f050039
 int id tabMode 0x7f050002
+int id text 0x7f05004a
 int id textView1 0x7f050046
 int id title 0x7f05002b
 int id top_action_bar 0x7f050020
@@ -341,7 +343,8 @@ int layout fragment_main 0x7f03001e
 int layout fragment_save 0x7f03001f
 int layout fragment_save_route 0x7f030020
 int layout grid_item 0x7f030021
-int layout support_simple_spinner_dropdown_item 0x7f030022
+int layout row 0x7f030022
+int layout support_simple_spinner_dropdown_item 0x7f030023
 int menu grid 0x7f0c0000
 int menu load 0x7f0c0001
 int menu main 0x7f0c0002

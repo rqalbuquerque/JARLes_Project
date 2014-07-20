@@ -16,8 +16,8 @@
         android:layout_alignParentRight="true"
         android:layout_marginBottom="34dp"
         android:layout_marginRight="24dp"
-        android:text="Salvar"
-        android:onClick="save" />
+        android:onClick="save"
+        android:text="Salvar" />
 
     <TextView
         android:id="@+id/textView1"
@@ -37,5 +37,16 @@
         android:layout_below="@+id/textView1"
         android:layout_marginTop="14dp"
         android:ems="10" />
+
+    <FrameLayout
+        android:id="@+id/caixaDialogo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/nome"
+        android:layout_below="@+id/nome"
+        android:layout_marginLeft="66dp"
+        android:layout_marginTop="50dp" >
+
+    </FrameLayout>
 
 </RelativeLayout>

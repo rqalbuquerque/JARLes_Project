@@ -18,6 +18,7 @@ import android.view.View.OnTouchListener;
 import android.widget.GridView;
 import android.widget.TextView;
 import android.widget.EditText;
+import android.widget.Toast;
 
 public class GridActivity extends ActionBarActivity implements OnClickListener {
 	
@@ -28,23 +29,38 @@ public class GridActivity extends ActionBarActivity implements OnClickListener {
 	private int mStartIndex;
 	private int mDarkColor;
 	private float w = 0, h = 0;
-	private List<Integer> mRoute;
+	private List<Integer> mRoute = new ArrayList<Integer>();
 	private OnTouchListener mGridTouch;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		
+		String message = "";
+		
+		try {
+			Intent intent = getIntent();
+			if(intent != null){
+				message = intent.getStringExtra(GridActivity.EXTRA_MESSAGE);
+				System.out.println(message);
+			
+				mRoute = recuperaRota(message);
+				System.out.println(mRoute);
+			}
+		} catch (Exception e) {
+			System.out.println("Usuario acessou new grid!");
+		}
+		
 
 		setContentView(R.layout.activity_grid);
 		mGridView = (GridView) findViewById(R.id.grid);
 		mAdapter = new GridAdapter(this);
-		mRoute = new ArrayList<Integer>();
 		mGridView.setAdapter(mAdapter);
 
 		findViewById(R.id.execute).setOnClickListener(this);
 		findViewById(R.id.save).setOnClickListener(this);
 		findViewById(R.id.clear).setOnClickListener(this);
-
+		
 		mDarkColor = getResources().getColor(android.R.color.background_dark);
 
 		mGridTouch = new OnTouchListener() {
@@ -66,6 +82,7 @@ public class GridActivity extends ActionBarActivity implements OnClickListener {
 
 				int index = (row * mGridView.getNumColumns()) + column;
 
+				System.out.println(mGridView.getChildCount());
 				View selectedView = mGridView.getChildAt(index);
 
 				if (selectedView != null) {
@@ -91,13 +108,46 @@ public class GridActivity extends ActionBarActivity implements OnClickListener {
 				return false;
 			}
 		};
-
+		
 		mGridView.setOnTouchListener(mGridTouch);
 
 		// Obtem o gridView de activity_grid
 		mGridView = (GridView) findViewById(R.id.grid);
 		//
 		mGridView.setAdapter(new GridAdapter(this));
+	}
+	
+	@Override
+	public void onStart(){
+	    super.onStart();
+	    
+		System.out.println(mGridView.getChildCount());
+		System.out.println("chegou no onStart()");
+		
+		if(!mRoute.isEmpty()){
+			for(int index : mRoute){
+				View selectedView = mGridView.getChildAt(index);
+				
+				if(selectedView != null){
+					TextView txtView = ((TextView) selectedView.findViewById(R.id.index));
+					txtView.setTextColor(mDarkColor);
+				}
+				
+				if(mRoute.indexOf(index) == 0){
+					if (selectedView != null)
+						selectedView.setBackgroundResource(R.drawable.background_start);
+				} 
+				else if(mRoute.indexOf(index) == (mRoute.size() - 1)){
+					if (selectedView != null)
+						selectedView.setBackgroundResource(R.drawable.background_finish);
+				} 
+				else{
+					if (selectedView != null)
+						selectedView.setBackgroundResource(R.drawable.background_selected);
+				}
+			}
+		}
+		
 	}
 
 	@Override
@@ -140,6 +190,29 @@ public class GridActivity extends ActionBarActivity implements OnClickListener {
 		Intent intent = new Intent(this, SaveRouteActivity.class);
 		intent.putExtra(EXTRA_MESSAGE, message);
 		startActivity(intent);
+	}
+	
+	private List<Integer> recuperaRota(String message){
+		List<Integer> rota = new ArrayList<Integer>();
+		int count = 0;
+		char messageArray[] = message.toCharArray();
+		
+		for(char c : messageArray){
+			if(c == '#'){
+				count++;
+				String numString = "";
+				Integer numero;
+				
+				while(messageArray[count] != '#' && messageArray[count] != '$'){
+					numString = numString + messageArray[count];
+					count++;
+				}
+				numero = Integer.parseInt(numString);
+				
+				rota.add(numero);
+			}
+		}
+		return rota;
 	}
 
 	private String converteRota_save (List<Integer> mRoute){
