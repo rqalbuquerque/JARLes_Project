@@ -228,10 +228,12 @@ int drawable abc_textfield_searchview_right_holo_dark 0x7f020055
 int drawable abc_textfield_searchview_right_holo_light 0x7f020056
 int drawable background_finish 0x7f020057
 int drawable background_normal 0x7f020058
-int drawable background_selected 0x7f020059
-int drawable background_start 0x7f02005a
-int drawable ic_launcher 0x7f02005b
-int drawable item_background 0x7f02005c
+int drawable background_obstacle 0x7f020059
+int drawable background_position 0x7f02005a
+int drawable background_selected 0x7f02005b
+int drawable background_start 0x7f02005c
+int drawable ic_launcher 0x7f02005d
+int drawable item_background 0x7f02005e
 int id about_button 0x7f050044
 int id action_bar 0x7f05001c
 int id action_bar_activity_content 0x7f050015

@@ -5,9 +5,8 @@ import java.util.List;
 
 import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.content.SharedPreferences.Editor;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
@@ -16,9 +15,9 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
+import android.widget.Button;
 import android.widget.GridView;
 import android.widget.TextView;
-import android.widget.EditText;
 import android.widget.Toast;
 
 public class GridActivity extends ActionBarActivity implements OnClickListener {
@@ -30,70 +29,85 @@ public class GridActivity extends ActionBarActivity implements OnClickListener {
 	private GridAdapter mAdapter;
 	private int mStartIndex;
 	private int mDarkColor;
+	private int finalIndex;
+	private int atualIndex;
 	private float w = 0, h = 0;
 	private List<Integer> mRoute = new ArrayList<Integer>();
+	private List<Integer> obstaculos = new ArrayList<Integer>();
 	private OnTouchListener mGridTouch;
+	public Button button;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		
 		String message = "";
-		
-		try {
-			Intent intent = getIntent();
-			if(intent != null){
-				message = intent.getStringExtra(GridActivity.EXTRA_MESSAGE);
-				System.out.println(message);
-			
-				mRoute = recuperaRota(message);
-				System.out.println(mRoute);
-			}
-		} catch (Exception e) {
-			System.out.println("Usuario acessou new grid!");
-		}
-		
 
+		//inicializa a gridView
 		setContentView(R.layout.activity_grid);
 		mGridView = (GridView) findViewById(R.id.grid);
 		mAdapter = new GridAdapter(this);
 		mGridView.setAdapter(mAdapter);
 		
-		System.out.println(mGridView.getChildCount());
-		System.out.println("chegou no onStart()");
-		
-		if(!mRoute.isEmpty()){
-			for(int index : mRoute){
-				View selectedView = mGridView.getChildAt(index);
-				
-				if(selectedView != null){
-					TextView txtView = ((TextView) selectedView.findViewById(R.id.index));
-					txtView.setTextColor(mDarkColor);
-				}
-				
-				if(mRoute.indexOf(index) == 0){
-					if (selectedView != null)
-						selectedView.setBackgroundResource(R.drawable.background_start);
-				} 
-				else if(mRoute.indexOf(index) == (mRoute.size() - 1)){
-					if (selectedView != null)
-						selectedView.setBackgroundResource(R.drawable.background_finish);
-				} 
-				else{
-					if (selectedView != null)
-						selectedView.setBackgroundResource(R.drawable.background_selected);
-				}
-			}
-		}
+		//tenta receber o intent da atividade load
+		try {
+			Intent intent = getIntent();
+			if(intent != null){
+				//menssagem que contem a rota carregada
+				message = intent.getStringExtra(GridActivity.EXTRA_MESSAGE);
+				System.out.println(message);
+				mRoute = recuperaRota_save(message);
+				System.out.println(mRoute);
 
+				//informa ao usuario que a rota foi salva com sucesso e desenha a nova rota
+				AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(context);
+				alertDialogBuilder.setTitle("JARLes");
+				alertDialogBuilder.setMessage("Rota carregada com sucesso!");
+				alertDialogBuilder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+					public void onClick(DialogInterface arg0, int arg1) {
+							//desenha a rota carregada
+							if(!mRoute.isEmpty()){
+								for(int index : mRoute){
+									View selectedView = mGridView.getChildAt(index);
+									
+									if(selectedView != null){
+										TextView txtView = ((TextView) selectedView.findViewById(R.id.index));
+										txtView.setTextColor(mDarkColor);
+									}
+									
+									if(mRoute.indexOf(index) == 0){
+										if (selectedView != null)
+											selectedView.setBackgroundResource(R.drawable.background_start);
+									} 
+									else if(mRoute.indexOf(index) == (mRoute.size() - 1)){
+										if (selectedView != null)
+											selectedView.setBackgroundResource(R.drawable.background_finish);
+									} 
+									else{
+										if (selectedView != null)
+											selectedView.setBackgroundResource(R.drawable.background_selected);
+									}
+								}
+							}
+						}
+					});
+
+				AlertDialog alertDialog = alertDialogBuilder.create();
+				alertDialog.show();
+			}
+		} catch (Exception e) {
+			System.out.println("Usuario acessou new grid!");
+		}
+		
+		//seta o click listener para os botões
 		findViewById(R.id.execute).setOnClickListener(this);
 		findViewById(R.id.save).setOnClickListener(this);
 		findViewById(R.id.clear).setOnClickListener(this);
 		
 		mDarkColor = getResources().getColor(android.R.color.background_dark);
-
+		
+		//define o touch listener para desenhar uma nova rota
 		mGridTouch = new OnTouchListener() {
-
 			@Override
 			public boolean onTouch(View v, MotionEvent event) {
 
@@ -111,7 +125,6 @@ public class GridActivity extends ActionBarActivity implements OnClickListener {
 
 				int index = (row * mGridView.getNumColumns()) + column;
 
-				//System.out.println(mGridView.getChildCount());
 				View selectedView = mGridView.getChildAt(index);
 
 				if (selectedView != null) {
@@ -125,20 +138,38 @@ public class GridActivity extends ActionBarActivity implements OnClickListener {
 						selectedView.setBackgroundResource(R.drawable.background_finish);
 						mGridView.setOnTouchListener(null);
 
-						System.out.println("Antes do if");
 						if(!testaRota(mRoute)){
-							mRoute = new ArrayList<Integer>();
-							System.out.println("Rota invalida");
-							
-							//alerta ao usuario que a rota é invalida
+							mRoute.clear();
+							mGridView.setAdapter(mAdapter);
+
+							//informa ao usuario que a rota esta errada
 							AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(context);
 							alertDialogBuilder.setTitle("JARLes");
-							alertDialogBuilder.setMessage("Rota inválida!");
+							alertDialogBuilder.setMessage("Rota invalida!");
+							alertDialogBuilder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+								public void onClick(DialogInterface arg0, int arg1) {
+									//marca todos os obstaculos
+									for(Integer index : obstaculos){
+										View selectedView = mGridView.getChildAt(index);
+										if(selectedView != null){
+											TextView txtView = ((TextView) selectedView.findViewById(R.id.index));
+											txtView.setTextColor(mDarkColor);
+											selectedView.setBackgroundResource(R.drawable.background_obstacle);
+										}
+									}
+									//marca a posicao atual do robo
+									View selectedView = mGridView.getChildAt(atualIndex);
+									if(selectedView != null){
+										TextView txtView = ((TextView) selectedView.findViewById(R.id.index));
+										txtView.setTextColor(mDarkColor);
+										selectedView.setBackgroundResource(R.drawable.background_position);
+									}
+								}
+							});
 							AlertDialog alertDialog = alertDialogBuilder.create();
 							alertDialog.show();
-		
+							
 							mGridView.setOnTouchListener(mGridTouch);
-							mGridView.setAdapter(mAdapter);
 						}
 						
 					} else {
@@ -151,50 +182,116 @@ public class GridActivity extends ActionBarActivity implements OnClickListener {
 					}
 				}
 				
-				
 				return false;
 			}
 		};
 		
+		//reinicializa a gridview e seta o touch listener
 		mGridView.setOnTouchListener(mGridTouch);
-
-		// Obtem o gridView de activity_grid
 		mGridView = (GridView) findViewById(R.id.grid);
-		//
 		mGridView.setAdapter(new GridAdapter(this));
 	}
 	
-	@Override
-	public void onStart(){
-	    super.onStart();
-	    
-		System.out.println(mGridView.getChildCount());
-		System.out.println("chegou no onStart()");
+	public void obstaculo(String menssagem){
+		String proto_inicial = converteRota_proto(mRoute);
+		List<Integer> novaRota = new ArrayList<Integer>();
+		int count = 0;
 		
-		if(!mRoute.isEmpty()){
-			for(int index : mRoute){
-				View selectedView = mGridView.getChildAt(index);
-				
-				if(selectedView != null){
-					TextView txtView = ((TextView) selectedView.findViewById(R.id.index));
-					txtView.setTextColor(mDarkColor);
-				}
-				
-				if(mRoute.indexOf(index) == 0){
-					if (selectedView != null)
-						selectedView.setBackgroundResource(R.drawable.background_start);
-				} 
-				else if(mRoute.indexOf(index) == (mRoute.size() - 1)){
-					if (selectedView != null)
-						selectedView.setBackgroundResource(R.drawable.background_finish);
-				} 
-				else{
-					if (selectedView != null)
-						selectedView.setBackgroundResource(R.drawable.background_selected);
+		if(proto_inicial.compareTo(menssagem) != 0){
+			for(char c : menssagem.toCharArray()){
+				if(c == 'F'){
+					char prox = menssagem.charAt(menssagem.indexOf(c) + 1);
+					count = count + Character.getNumericValue(prox);
 				}
 			}
+			int indexObstaculo = mRoute.get(count);
+			System.out.println("Obstaculo em " + indexObstaculo);
+			obstaculos.add(indexObstaculo);
+			finalIndex = mRoute.get(mRoute.size()-1);
+			
+			for(int x: mRoute){
+				if(mRoute.indexOf(x) <= count){
+					novaRota.add(x);
+				}
+			}
+			
+			mAdapter = new GridAdapter(this);
+			mGridView.setAdapter(mAdapter);
+			mRoute = novaRota;
+			
+			atualIndex = mRoute.get(mRoute.size()-2);
+			
+			//informa ao usuario que um obstaculo foi encontrado
+			AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(context);
+			alertDialogBuilder.setTitle("JARLes");
+			alertDialogBuilder.setMessage("Obstaculo encontrado!");
+			alertDialogBuilder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+				public void onClick(DialogInterface arg0, int arg1) {
+					
+						//desenha a rota com o obstaculo
+						if(!mRoute.isEmpty()){
+							for(int index : mRoute){
+								View selectedView = mGridView.getChildAt(index);
+								
+								if(selectedView != null){
+									TextView txtView = ((TextView) selectedView.findViewById(R.id.index));
+									txtView.setTextColor(mDarkColor);
+								}
+								
+								if(mRoute.indexOf(index) == 0){
+									if (selectedView != null)
+										selectedView.setBackgroundResource(R.drawable.background_start);
+								}
+								else if(mRoute.indexOf(index) == (mRoute.size() - 2)){
+									if (selectedView != null)
+										selectedView.setBackgroundResource(R.drawable.background_position);
+								} 
+								else{
+									if (selectedView != null)
+										selectedView.setBackgroundResource(R.drawable.background_selected);
+								}
+							}
+						}
+						
+						//marca todos os obstaculos
+						for(Integer index : obstaculos){
+							View selectedView = mGridView.getChildAt(index);
+							if(selectedView != null){
+								TextView txtView = ((TextView) selectedView.findViewById(R.id.index));
+								txtView.setTextColor(mDarkColor);
+								selectedView.setBackgroundResource(R.drawable.background_obstacle);
+							}
+						}
+
+						//marca o ultimo ponto final
+						View selectedView = mGridView.getChildAt(finalIndex);
+						if(selectedView != null){
+							TextView txtView = ((TextView) selectedView.findViewById(R.id.index));
+							txtView.setTextColor(mDarkColor);
+							selectedView.setBackgroundResource(R.drawable.background_finish);
+						}
+
+						//solicita e espera usuario digitar nova rota
+						Toast.makeText(context, "Digite uma nova rota", Toast.LENGTH_SHORT).show();
+						mRoute.clear();
+						mGridView.setOnTouchListener(mGridTouch);
+					}
+				});
+			AlertDialog alertDialog = alertDialogBuilder.create();
+			alertDialog.show();
 		}
-		
+		else{
+			//informa ao usuario que a rota foi concluida com sucesso
+			AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(context);
+			alertDialogBuilder.setTitle("JARLes");
+			alertDialogBuilder.setMessage("Rota concluida com sucesso!");
+			alertDialogBuilder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+				public void onClick(DialogInterface arg0, int arg1) {
+					}
+				});
+			AlertDialog alertDialog = alertDialogBuilder.create();
+			alertDialog.show();
+		}
 	}
 
 	@Override
@@ -221,17 +318,53 @@ public class GridActivity extends ActionBarActivity implements OnClickListener {
 	public void onClick(View v) {
 		switch (v.getId()) {
 		case R.id.execute:
+			obstaculo("F4$");
 			break;
 		case R.id.save:
 			sendMessage(converteRota_save (mRoute));
 			break;
 		case R.id.clear:
+			mRoute.clear();
+			mGridView.setAdapter(mAdapter);
+
+			//informa ao usuario que um obstaculo foi encontrado
+			AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(context);
+			alertDialogBuilder.setTitle("JARLes");
+			alertDialogBuilder.setMessage("Deseja apagar todos os obstaculos e a posição atual do Rôbo?");
+			alertDialogBuilder.setNegativeButton("Sim", new DialogInterface.OnClickListener() {
+				public void onClick(DialogInterface arg0, int arg1) {
+					obstaculos.clear();
+				}
+			});
+			alertDialogBuilder.setPositiveButton("Nao", new DialogInterface.OnClickListener() {
+				public void onClick(DialogInterface arg0, int arg1) {
+					//marca todos os obstaculos
+					for(Integer index : obstaculos){
+						View selectedView = mGridView.getChildAt(index);
+						if(selectedView != null){
+							TextView txtView = ((TextView) selectedView.findViewById(R.id.index));
+							txtView.setTextColor(mDarkColor);
+							selectedView.setBackgroundResource(R.drawable.background_obstacle);
+						}
+					}
+					//marca a posicao atual do robo
+					View selectedView = mGridView.getChildAt(atualIndex);
+					if(selectedView != null){
+						TextView txtView = ((TextView) selectedView.findViewById(R.id.index));
+						txtView.setTextColor(mDarkColor);
+						selectedView.setBackgroundResource(R.drawable.background_position);
+					}
+				}
+			});
+			AlertDialog alertDialog = alertDialogBuilder.create();
+			alertDialog.show();
+			
 			mGridView.setOnTouchListener(mGridTouch);
-			mGridView.setAdapter(new GridAdapter(this));
 			break;
 		}
 
 	}
+	
 	//retorna falso caso seja uma rota invalida
 	public boolean testaRota(List<Integer> mRoute){
 		boolean resposta = true;
@@ -247,13 +380,39 @@ public class GridActivity extends ActionBarActivity implements OnClickListener {
 		return resposta;
 	}
 	
+	//envia rota para a atividade de salvar
 	private void sendMessage(String message) {
 		Intent intent = new Intent(this, SaveRouteActivity.class);
 		intent.putExtra(EXTRA_MESSAGE, message);
 		startActivity(intent);
 	}
+
+	//recupera a rota da menssagem para o vetor
+	private List<Integer> recuperaRota_save(String message){
+		List<Integer> rota = new ArrayList<Integer>();
+		int count = 0;
+		char messageArray[] = message.toCharArray();
+		
+		for(char c : messageArray){
+			if(c == '#'){
+				count++;
+				String numString = "";
+				Integer numero;
+				
+				while(messageArray[count] != '#' && messageArray[count] != '$'){
+					numString = numString + messageArray[count];
+					count++;
+				}
+				numero = Integer.parseInt(numString);
+				
+				rota.add(numero);
+			}
+		}
+		return rota;
+	}
 	
-	private List<Integer> recuperaRota(String message){
+	//recupera a rota da menssagem para o vetor
+	private List<Integer> recuperaRota_proto(String message){
 		List<Integer> rota = new ArrayList<Integer>();
 		int count = 0;
 		char messageArray[] = message.toCharArray();
@@ -276,6 +435,7 @@ public class GridActivity extends ActionBarActivity implements OnClickListener {
 		return rota;
 	}
 
+	//converte rota para a string de salvar
 	private String converteRota_save (List<Integer> mRoute){
 		String rota = "";
 		
@@ -286,6 +446,7 @@ public class GridActivity extends ActionBarActivity implements OnClickListener {
 		return rota;
 	}
 	
+	//converte a rota para enviar
 	private String converteRota_proto (List<Integer> mRoute){
 		String rota = "";
 		String direcao = "";
@@ -379,5 +540,4 @@ public class GridActivity extends ActionBarActivity implements OnClickListener {
 		//System.out.println(rota);
 		return rota;
 	}
-
 }

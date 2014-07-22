@@ -1,5 +1,8 @@
 package br.ufpe.cin.jarlesproject;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,6 +13,7 @@ import android.widget.TextView;
 public class GridAdapter extends BaseAdapter {
 
 	private Context mContext;
+	private List<Integer> mRoute;
 	
 	public GridAdapter(Context ctx) {
 		mContext = ctx;
