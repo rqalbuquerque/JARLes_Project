@@ -3,6 +3,7 @@ package br.ufpe.cin.jarlesproject;
 import java.util.ArrayList;
 import java.util.List;
 
+import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -23,6 +24,7 @@ import android.widget.Toast;
 public class GridActivity extends ActionBarActivity implements OnClickListener {
 	
 	public final static String EXTRA_MESSAGE = "com.example.myfirstapp.MESSAGE";
+	final Context context = this;
 	
 	private GridView mGridView;
 	private GridAdapter mAdapter;
@@ -56,6 +58,33 @@ public class GridActivity extends ActionBarActivity implements OnClickListener {
 		mGridView = (GridView) findViewById(R.id.grid);
 		mAdapter = new GridAdapter(this);
 		mGridView.setAdapter(mAdapter);
+		
+		System.out.println(mGridView.getChildCount());
+		System.out.println("chegou no onStart()");
+		
+		if(!mRoute.isEmpty()){
+			for(int index : mRoute){
+				View selectedView = mGridView.getChildAt(index);
+				
+				if(selectedView != null){
+					TextView txtView = ((TextView) selectedView.findViewById(R.id.index));
+					txtView.setTextColor(mDarkColor);
+				}
+				
+				if(mRoute.indexOf(index) == 0){
+					if (selectedView != null)
+						selectedView.setBackgroundResource(R.drawable.background_start);
+				} 
+				else if(mRoute.indexOf(index) == (mRoute.size() - 1)){
+					if (selectedView != null)
+						selectedView.setBackgroundResource(R.drawable.background_finish);
+				} 
+				else{
+					if (selectedView != null)
+						selectedView.setBackgroundResource(R.drawable.background_selected);
+				}
+			}
+		}
 
 		findViewById(R.id.execute).setOnClickListener(this);
 		findViewById(R.id.save).setOnClickListener(this);
@@ -82,7 +111,7 @@ public class GridActivity extends ActionBarActivity implements OnClickListener {
 
 				int index = (row * mGridView.getNumColumns()) + column;
 
-				System.out.println(mGridView.getChildCount());
+				//System.out.println(mGridView.getChildCount());
 				View selectedView = mGridView.getChildAt(index);
 
 				if (selectedView != null) {
@@ -95,6 +124,23 @@ public class GridActivity extends ActionBarActivity implements OnClickListener {
 					} else if (event.getAction() == event.ACTION_UP) {
 						selectedView.setBackgroundResource(R.drawable.background_finish);
 						mGridView.setOnTouchListener(null);
+
+						System.out.println("Antes do if");
+						if(!testaRota(mRoute)){
+							mRoute = new ArrayList<Integer>();
+							System.out.println("Rota invalida");
+							
+							//alerta ao usuario que a rota é invalida
+							AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(context);
+							alertDialogBuilder.setTitle("JARLes");
+							alertDialogBuilder.setMessage("Rota inválida!");
+							AlertDialog alertDialog = alertDialogBuilder.create();
+							alertDialog.show();
+		
+							mGridView.setOnTouchListener(mGridTouch);
+							mGridView.setAdapter(mAdapter);
+						}
+						
 					} else {
 						if (index != mStartIndex)
 							selectedView.setBackgroundResource(R.drawable.background_selected);
@@ -104,6 +150,7 @@ public class GridActivity extends ActionBarActivity implements OnClickListener {
 						mRoute.add(index);
 					}
 				}
+				
 				
 				return false;
 			}
@@ -184,6 +231,20 @@ public class GridActivity extends ActionBarActivity implements OnClickListener {
 			break;
 		}
 
+	}
+	//retorna falso caso seja uma rota invalida
+	public boolean testaRota(List<Integer> mRoute){
+		boolean resposta = true;
+		Integer anterior = -200;
+		for (Integer x:mRoute){
+			if(anterior - x == 11 || anterior - x == -11)
+				resposta = false;
+			if(anterior - x == 9 || anterior - x == -9)
+				resposta = false;
+			
+			anterior = x;
+		}
+		return resposta;
 	}
 	
 	private void sendMessage(String message) {
