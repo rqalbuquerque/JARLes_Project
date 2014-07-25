@@ -1,5 +1,15 @@
 package br.ufpe.cin.jarlesproject;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.Set;
+import java.util.UUID;
+
+import android.app.Activity;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothSocket;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -9,11 +19,15 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
 
 
 //Primeira atividade a ser chamada quando o app é iniciado
 public class MainActivity extends ActionBarActivity {
+
+	
 	public final static String EXTRA_MESSAGE = "com.example.myfirstapp.MESSAGE";
 	//Método de criação da atividade, 
 	@Override
@@ -39,7 +53,7 @@ public class MainActivity extends ActionBarActivity {
 	public void load_grid(View view){
 		Intent i = new Intent(this, LoadActivity.class);
 		startActivity(i);
-	}
+	}	
 	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {

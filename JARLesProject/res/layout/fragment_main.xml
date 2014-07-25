@@ -8,11 +8,12 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="br.ufpe.cin.jarlesproject.MainActivity$PlaceholderFragment" >
 	
-    <LinearLayout android:orientation="vertical"
-        		  android:layout_width="match_parent"
-        		  android:layout_height="wrap_content"
-        		  android:gravity="center"
-        		  >
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_weight="0.85"
+        android:gravity="center"
+        android:orientation="vertical" >
        
         <TextView android:text="@string/welcome_tittle"
             	  android:layout_marginBottom="25dip"
@@ -30,19 +31,19 @@
         
         <Button	android:id="@+id/new_grid_button"
             	android:layout_width="fill_parent"
-            	android:layout_height="fill_parent"
+            	android:layout_height="wrap_content"
             	android:text="@string/new_grid_button"
             	android:onClick="draw_new_grid"/>
         
         <Button	android:id="@+id/load_grid_button"
             	android:layout_width="fill_parent"
-            	android:layout_height="fill_parent"
+            	android:layout_height="wrap_content"
             	android:text="@string/load_grid_button"
 				android:onClick="load_grid"/>
         
         <Button	android:id="@+id/about_button"
             	android:layout_width="fill_parent"
-            	android:layout_height="fill_parent"
+            	android:layout_height="wrap_content"
             	android:text="@string/about_button"/>
         
     </LinearLayout>

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Imagem de fundo da tela do listview -->
+    <style name="MyBackground" parent="android:Theme">
+        <item name="android:windowBackground">@drawable/blue_background</item>
+    </style>
+</resources>

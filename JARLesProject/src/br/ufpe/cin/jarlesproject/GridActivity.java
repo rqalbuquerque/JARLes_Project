@@ -1,9 +1,18 @@
 package br.ufpe.cin.jarlesproject;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
+import android.app.Activity;
 import android.app.AlertDialog;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothSocket;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -21,26 +30,46 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 public class GridActivity extends ActionBarActivity implements OnClickListener {
-	
+
 	public final static String EXTRA_MESSAGE = "com.example.myfirstapp.MESSAGE";
 	final Context context = this;
-	
+
+	//Atributos de view
 	private GridView mGridView;
 	private GridAdapter mAdapter;
 	private int mStartIndex;
 	private int mDarkColor;
 	private int finalIndex;
-	private int atualIndex;
+	private int atualIndex = -1;
 	private float w = 0, h = 0;
 	private List<Integer> mRoute = new ArrayList<Integer>();
 	private List<Integer> obstaculos = new ArrayList<Integer>();
 	private OnTouchListener mGridTouch;
 	public Button button;
 
+	//Atributos da conexao bluetooth
+	private final int REQUEST_ENABLE_BT = 1;
+	private final String StrBluetooth = "linvor";
+	private static final UUID mUUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
+	Button btSend, btRec, btConect, btDesconect;
+	private String mStrRec;
+	private String mStrSendç;
+	private BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();;
+	private Set<BluetoothDevice> mPairedDevices; 
+	private BluetoothSocket mBtSocket = null;
+	private OutputStream outStream = null;
+	private InputStream inStream = null;
+
+	//Variaveis de thread
+	private BufferMessage mBuffer = new BufferMessage();
+	ThreadReceive T1 = null;
+	
+	
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		
+
 		String message = "";
 
 		//inicializa a gridView
@@ -48,7 +77,7 @@ public class GridActivity extends ActionBarActivity implements OnClickListener {
 		mGridView = (GridView) findViewById(R.id.grid);
 		mAdapter = new GridAdapter(this);
 		mGridView.setAdapter(mAdapter);
-		
+
 		//tenta receber o intent da atividade load
 		try {
 			Intent intent = getIntent();
@@ -65,32 +94,32 @@ public class GridActivity extends ActionBarActivity implements OnClickListener {
 				alertDialogBuilder.setMessage("Rota carregada com sucesso!");
 				alertDialogBuilder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
 					public void onClick(DialogInterface arg0, int arg1) {
-							//desenha a rota carregada
-							if(!mRoute.isEmpty()){
-								for(int index : mRoute){
-									View selectedView = mGridView.getChildAt(index);
-									
-									if(selectedView != null){
-										TextView txtView = ((TextView) selectedView.findViewById(R.id.index));
-										txtView.setTextColor(mDarkColor);
-									}
-									
-									if(mRoute.indexOf(index) == 0){
-										if (selectedView != null)
-											selectedView.setBackgroundResource(R.drawable.background_start);
-									} 
-									else if(mRoute.indexOf(index) == (mRoute.size() - 1)){
-										if (selectedView != null)
-											selectedView.setBackgroundResource(R.drawable.background_finish);
-									} 
-									else{
-										if (selectedView != null)
-											selectedView.setBackgroundResource(R.drawable.background_selected);
-									}
+						//desenha a rota carregada
+						if(!mRoute.isEmpty()){
+							for(int index : mRoute){
+								View selectedView = mGridView.getChildAt(index);
+
+								if(selectedView != null){
+									TextView txtView = ((TextView) selectedView.findViewById(R.id.index));
+									txtView.setTextColor(mDarkColor);
+								}
+
+								if(mRoute.indexOf(index) == 0){
+									if (selectedView != null)
+										selectedView.setBackgroundResource(R.drawable.background_start);
+								} 
+								else if(mRoute.indexOf(index) == (mRoute.size() - 1)){
+									if (selectedView != null)
+										selectedView.setBackgroundResource(R.drawable.background_finish);
+								} 
+								else{
+									if (selectedView != null)
+										selectedView.setBackgroundResource(R.drawable.background_selected);
 								}
 							}
 						}
-					});
+					}
+				});
 
 				AlertDialog alertDialog = alertDialogBuilder.create();
 				alertDialog.show();
@@ -98,14 +127,16 @@ public class GridActivity extends ActionBarActivity implements OnClickListener {
 		} catch (Exception e) {
 			System.out.println("Usuario acessou new grid!");
 		}
-		
+
 		//seta o click listener para os botões
 		findViewById(R.id.execute).setOnClickListener(this);
 		findViewById(R.id.save).setOnClickListener(this);
 		findViewById(R.id.clear).setOnClickListener(this);
-		
+		findViewById(R.id.conect).setOnClickListener(this);
+		findViewById(R.id.desconect).setOnClickListener(this);
+
 		mDarkColor = getResources().getColor(android.R.color.background_dark);
-		
+
 		//define o touch listener para desenhar uma nova rota
 		mGridTouch = new OnTouchListener() {
 			@Override
@@ -158,20 +189,22 @@ public class GridActivity extends ActionBarActivity implements OnClickListener {
 										}
 									}
 									//marca a posicao atual do robo
-									View selectedView = mGridView.getChildAt(atualIndex);
-									if(selectedView != null){
-										TextView txtView = ((TextView) selectedView.findViewById(R.id.index));
-										txtView.setTextColor(mDarkColor);
-										selectedView.setBackgroundResource(R.drawable.background_position);
+									if(atualIndex != -1){
+										View selectedView = mGridView.getChildAt(atualIndex);
+										if(selectedView != null){
+											TextView txtView = ((TextView) selectedView.findViewById(R.id.index));
+											txtView.setTextColor(mDarkColor);
+											selectedView.setBackgroundResource(R.drawable.background_position);
+										}
 									}
 								}
 							});
 							AlertDialog alertDialog = alertDialogBuilder.create();
 							alertDialog.show();
-							
+
 							mGridView.setOnTouchListener(mGridTouch);
 						}
-						
+
 					} else {
 						if (index != mStartIndex)
 							selectedView.setBackgroundResource(R.drawable.background_selected);
@@ -181,22 +214,22 @@ public class GridActivity extends ActionBarActivity implements OnClickListener {
 						mRoute.add(index);
 					}
 				}
-				
+
 				return false;
 			}
 		};
-		
+
 		//reinicializa a gridview e seta o touch listener
 		mGridView.setOnTouchListener(mGridTouch);
 		mGridView = (GridView) findViewById(R.id.grid);
 		mGridView.setAdapter(new GridAdapter(this));
 	}
-	
+
 	public void obstaculo(String menssagem){
 		String proto_inicial = converteRota_proto(mRoute);
 		List<Integer> novaRota = new ArrayList<Integer>();
 		int count = 0;
-		
+
 		if(proto_inicial.compareTo(menssagem) != 0){
 			for(char c : menssagem.toCharArray()){
 				if(c == 'F'){
@@ -204,81 +237,88 @@ public class GridActivity extends ActionBarActivity implements OnClickListener {
 					count = count + Character.getNumericValue(prox);
 				}
 			}
+			
 			int indexObstaculo = mRoute.get(count);
 			System.out.println("Obstaculo em " + indexObstaculo);
 			obstaculos.add(indexObstaculo);
 			finalIndex = mRoute.get(mRoute.size()-1);
-			
+
 			for(int x: mRoute){
 				if(mRoute.indexOf(x) <= count){
 					novaRota.add(x);
 				}
 			}
-			
+
 			mAdapter = new GridAdapter(this);
 			mGridView.setAdapter(mAdapter);
 			mRoute = novaRota;
-			
+
 			atualIndex = mRoute.get(mRoute.size()-2);
-			
+
 			//informa ao usuario que um obstaculo foi encontrado
 			AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(context);
 			alertDialogBuilder.setTitle("JARLes");
 			alertDialogBuilder.setMessage("Obstaculo encontrado!");
 			alertDialogBuilder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
 				public void onClick(DialogInterface arg0, int arg1) {
-					
-						//desenha a rota com o obstaculo
-						if(!mRoute.isEmpty()){
-							for(int index : mRoute){
-								View selectedView = mGridView.getChildAt(index);
-								
-								if(selectedView != null){
-									TextView txtView = ((TextView) selectedView.findViewById(R.id.index));
-									txtView.setTextColor(mDarkColor);
-								}
-								
-								if(mRoute.indexOf(index) == 0){
-									if (selectedView != null)
-										selectedView.setBackgroundResource(R.drawable.background_start);
-								}
-								else if(mRoute.indexOf(index) == (mRoute.size() - 2)){
-									if (selectedView != null)
-										selectedView.setBackgroundResource(R.drawable.background_position);
-								} 
-								else{
-									if (selectedView != null)
-										selectedView.setBackgroundResource(R.drawable.background_selected);
-								}
-							}
-						}
-						
-						//marca todos os obstaculos
-						for(Integer index : obstaculos){
+
+					//desenha a rota com o obstaculo
+					if(!mRoute.isEmpty()){
+						for(int index : mRoute){
 							View selectedView = mGridView.getChildAt(index);
+
 							if(selectedView != null){
 								TextView txtView = ((TextView) selectedView.findViewById(R.id.index));
 								txtView.setTextColor(mDarkColor);
-								selectedView.setBackgroundResource(R.drawable.background_obstacle);
+							}
+
+							if(mRoute.indexOf(index) == 0){
+								if (selectedView != null)
+									selectedView.setBackgroundResource(R.drawable.background_start);
+							}
+							else if(mRoute.indexOf(index) == (mRoute.size() - 2)){
+								if (selectedView != null)
+									selectedView.setBackgroundResource(R.drawable.background_position);
+							} 
+							else{
+								if (selectedView != null)
+									selectedView.setBackgroundResource(R.drawable.background_selected);
 							}
 						}
+					}
 
-						//marca o ultimo ponto final
-						View selectedView = mGridView.getChildAt(finalIndex);
+					//marca todos os obstaculos
+					for(Integer index : obstaculos){
+						View selectedView = mGridView.getChildAt(index);
 						if(selectedView != null){
 							TextView txtView = ((TextView) selectedView.findViewById(R.id.index));
 							txtView.setTextColor(mDarkColor);
-							selectedView.setBackgroundResource(R.drawable.background_finish);
+							selectedView.setBackgroundResource(R.drawable.background_obstacle);
 						}
-
-						//solicita e espera usuario digitar nova rota
-						Toast.makeText(context, "Digite uma nova rota", Toast.LENGTH_SHORT).show();
-						mRoute.clear();
-						mGridView.setOnTouchListener(mGridTouch);
 					}
-				});
+
+					//marca o ultimo ponto final
+					View selectedView = mGridView.getChildAt(finalIndex);
+					if(selectedView != null){
+						TextView txtView = ((TextView) selectedView.findViewById(R.id.index));
+						txtView.setTextColor(mDarkColor);
+						selectedView.setBackgroundResource(R.drawable.background_finish);
+					}
+
+					//solicita e espera usuario digitar nova rota
+					Toast.makeText(context, "Digite uma nova rota", Toast.LENGTH_SHORT).show();
+					mRoute.clear();
+					mGridView.setOnTouchListener(mGridTouch);
+				}
+			});
 			AlertDialog alertDialog = alertDialogBuilder.create();
 			alertDialog.show();
+
+			if(T1 != null){
+				T1.destroy();
+				T1 = null;			
+			}
+			
 		}
 		else{
 			//informa ao usuario que a rota foi concluida com sucesso
@@ -287,8 +327,8 @@ public class GridActivity extends ActionBarActivity implements OnClickListener {
 			alertDialogBuilder.setMessage("Rota concluida com sucesso!");
 			alertDialogBuilder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
 				public void onClick(DialogInterface arg0, int arg1) {
-					}
-				});
+				}
+			});
 			AlertDialog alertDialog = alertDialogBuilder.create();
 			alertDialog.show();
 		}
@@ -303,6 +343,14 @@ public class GridActivity extends ActionBarActivity implements OnClickListener {
 	}
 
 	@Override
+	public void onPause() {
+		super.onPause();  // Always call the superclass method first
+		T1.destroy();
+		T1 = null;
+		desconect();
+	}
+
+	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		// Handle action bar item clicks here. The action bar will
 		// automatically handle clicks on the Home/Up button, so long
@@ -314,57 +362,203 @@ public class GridActivity extends ActionBarActivity implements OnClickListener {
 		return super.onOptionsItemSelected(item);
 	}
 
-	@Override
-	public void onClick(View v) {
-		switch (v.getId()) {
-		case R.id.execute:
-			obstaculo("F4$");
-			break;
-		case R.id.save:
-			sendMessage(converteRota_save (mRoute));
-			break;
-		case R.id.clear:
-			mRoute.clear();
-			mGridView.setAdapter(mAdapter);
+	public void executeRoute(){
+		
+		if(mBtSocket != null){
+			try {
+				outStream = mBtSocket.getOutputStream();
+			} catch (Exception e) {
+				System.out.println("Exception(Send): " + e);
+			}
 
-			//informa ao usuario que um obstaculo foi encontrado
-			AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(context);
-			alertDialogBuilder.setTitle("JARLes");
-			alertDialogBuilder.setMessage("Deseja apagar todos os obstaculos e a posição atual do Rôbo?");
-			alertDialogBuilder.setNegativeButton("Sim", new DialogInterface.OnClickListener() {
-				public void onClick(DialogInterface arg0, int arg1) {
-					obstaculos.clear();
+			byte[] strRotaBuffer = converteRota_proto (mRoute).getBytes();
+			try {
+				Toast.makeText(this.getBaseContext(), "Rota Enviada", Toast.LENGTH_SHORT).show();
+				outStream.write(strRotaBuffer);
+			} catch (Exception e) {
+				System.out.println("Exception(Send): " + e);
+			}
+		}
+		else{
+			Toast.makeText(this.getBaseContext(), "Bluetooth nao conetado!", Toast.LENGTH_SHORT).show();
+		}
+		
+		T1 = new ThreadReceive(mBtSocket,mBuffer);
+		T1.start();
+		System.out.println("Apos criar a thread");
+		
+		if(mBuffer.getLenght() > 0){
+			System.out.println(mBuffer.removeMess());
+			obstaculo(mBuffer.removeMess());
+			mBuffer.clear();
+		}
+	}
+
+	public void conect(){
+		//Conecta-se com dispositivo já pareado			
+		//Checa se o bluetooth está disponivel
+		//mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+		if(mBluetoothAdapter == null){
+			Toast.makeText(context, "Bluetooth não está disponivel!", Toast.LENGTH_SHORT).show();
+		}
+
+		//Checa se o bluetooth está habilitado
+		if (!mBluetoothAdapter.isEnabled()) {
+			Toast.makeText(context, "Ligando bluetooth", Toast.LENGTH_SHORT).show();
+			Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+			startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+		}
+
+		mPairedDevices = mBluetoothAdapter.getBondedDevices();
+		BluetoothDevice mDeviceBluetooth = null;
+
+		if(mPairedDevices.size() > 0){
+			for(BluetoothDevice device : mPairedDevices){
+				if(device.getName().equals(StrBluetooth)){
+					mDeviceBluetooth = device;
+					break;
 				}
-			});
-			alertDialogBuilder.setPositiveButton("Nao", new DialogInterface.OnClickListener() {
-				public void onClick(DialogInterface arg0, int arg1) {
-					//marca todos os obstaculos
-					for(Integer index : obstaculos){
-						View selectedView = mGridView.getChildAt(index);
-						if(selectedView != null){
-							TextView txtView = ((TextView) selectedView.findViewById(R.id.index));
-							txtView.setTextColor(mDarkColor);
-							selectedView.setBackgroundResource(R.drawable.background_obstacle);
-						}
+			}
+		}
+
+		//System.out.println("Dispositivo de conexao: " + mDeviceBluetooth.getName());
+
+		if(mDeviceBluetooth != null){
+			try{
+				//Socket de conexao
+				mBtSocket = mDeviceBluetooth.createRfcommSocketToServiceRecord(mUUID);
+				//Inicia conexão
+				mBtSocket.connect();
+				Toast.makeText(context, "Bluetooth conectado com sucesso!", Toast.LENGTH_SHORT).show();
+			}catch(IOException e){
+				System.out.println("Exception gerada: " + e);
+			}
+		}else{
+			Toast.makeText(context, "Dispositivo não está disponivel", Toast.LENGTH_SHORT).show();
+		}
+	}
+
+	public void desconect(){
+		if(T1 != null){
+			T1.destroy();
+			T1 = null;			
+		}
+		
+		if(mBtSocket != null){
+			try{
+				mBtSocket.close();
+				mBtSocket = null;
+
+				//informa ao usuario que a rota foi salva com sucesso e desenha a nova rota
+				AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(context);
+				alertDialogBuilder.setTitle("JARLes");
+				alertDialogBuilder.setMessage("Deseja desligar o bluetooth?");
+				alertDialogBuilder.setPositiveButton("Sim", new DialogInterface.OnClickListener() {
+					public void onClick(DialogInterface arg0, int arg1) {
+						//desenha a rota carregada
+						mBluetoothAdapter.disable();
+						Toast.makeText(context, "Conexão encerrada e Bluetooth desligado!", Toast.LENGTH_SHORT).show();
 					}
-					//marca a posicao atual do robo
-					View selectedView = mGridView.getChildAt(atualIndex);
+				});
+				alertDialogBuilder.setNegativeButton("Não", new DialogInterface.OnClickListener() {
+					public void onClick(DialogInterface arg0, int arg1) {
+						Toast.makeText(context, "Conexão encerrada!", Toast.LENGTH_SHORT).show();
+					}
+				});
+				AlertDialog alertDialog = alertDialogBuilder.create();
+				alertDialog.show();
+
+			}catch(IOException e){
+				System.out.println("Exception gerada: " + e);
+			}
+		}
+	}
+
+	public void clear(){
+
+		mRoute.clear();
+		mGridView.setAdapter(mAdapter);
+
+		//informa ao usuario que um obstaculo foi encontrado
+		AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(context);
+		alertDialogBuilder.setTitle("JARLes");
+		alertDialogBuilder.setMessage("Deseja apagar todos os obstaculos e a posição atual do Rôbo?");
+		alertDialogBuilder.setNegativeButton("Sim", new DialogInterface.OnClickListener() {
+			public void onClick(DialogInterface arg0, int arg1) {
+				obstaculos.clear();
+				atualIndex = -1;
+			}
+		});
+		alertDialogBuilder.setPositiveButton("Nao", new DialogInterface.OnClickListener() {
+			public void onClick(DialogInterface arg0, int arg1) {
+				//marca todos os obstaculos
+				for(Integer index : obstaculos){
+					View selectedView = mGridView.getChildAt(index);
 					if(selectedView != null){
 						TextView txtView = ((TextView) selectedView.findViewById(R.id.index));
 						txtView.setTextColor(mDarkColor);
-						selectedView.setBackgroundResource(R.drawable.background_position);
+						selectedView.setBackgroundResource(R.drawable.background_obstacle);
 					}
 				}
-			});
-			AlertDialog alertDialog = alertDialogBuilder.create();
-			alertDialog.show();
-			
-			mGridView.setOnTouchListener(mGridTouch);
+				//marca a posicao atual do robo
+				View selectedView = mGridView.getChildAt(atualIndex);
+				if(selectedView != null){
+					TextView txtView = ((TextView) selectedView.findViewById(R.id.index));
+					txtView.setTextColor(mDarkColor);
+					selectedView.setBackgroundResource(R.drawable.background_position);
+				}
+			}
+		});
+		AlertDialog alertDialog = alertDialogBuilder.create();
+		alertDialog.show();
+
+		mGridView.setOnTouchListener(mGridTouch);
+	}
+
+	@Override
+	public void onClick(View v) {
+
+		switch (v.getId()) {
+
+		case R.id.execute:
+			executeRoute();
+			break;
+
+		case R.id.save:
+			sendMessage(converteRota_save (mRoute));
+			break;
+
+		case R.id.conect: 
+			conect();
+			break;
+
+		case R.id.desconect:  //Desconecta-se do bluetooth
+			desconect();
+			break;
+
+		case R.id.clear:
+			clear();
 			break;
 		}
 
 	}
-	
+
+
+	//Método que retorna do startActivityForResult com os códigos de resultado
+	//Usado para habilitar o bluetooth
+	protected void onActivityResult(int requestCode, int resultCode, Intent data){
+		super.onActivityResult(requestCode, resultCode, data);
+
+		if(requestCode == REQUEST_ENABLE_BT){
+			if(resultCode == Activity.RESULT_OK){
+				Toast.makeText(context, "Bluetooth Ativado!", Toast.LENGTH_SHORT).show();
+			}
+			else{
+				finish();
+			}
+		}
+	}
+
 	//retorna falso caso seja uma rota invalida
 	public boolean testaRota(List<Integer> mRoute){
 		boolean resposta = true;
@@ -374,12 +568,12 @@ public class GridActivity extends ActionBarActivity implements OnClickListener {
 				resposta = false;
 			if(anterior - x == 9 || anterior - x == -9)
 				resposta = false;
-			
+
 			anterior = x;
 		}
 		return resposta;
 	}
-	
+
 	//envia rota para a atividade de salvar
 	private void sendMessage(String message) {
 		Intent intent = new Intent(this, SaveRouteActivity.class);
@@ -392,43 +586,43 @@ public class GridActivity extends ActionBarActivity implements OnClickListener {
 		List<Integer> rota = new ArrayList<Integer>();
 		int count = 0;
 		char messageArray[] = message.toCharArray();
-		
+
 		for(char c : messageArray){
 			if(c == '#'){
 				count++;
 				String numString = "";
 				Integer numero;
-				
+
 				while(messageArray[count] != '#' && messageArray[count] != '$'){
 					numString = numString + messageArray[count];
 					count++;
 				}
 				numero = Integer.parseInt(numString);
-				
+
 				rota.add(numero);
 			}
 		}
 		return rota;
 	}
-	
+
 	//recupera a rota da menssagem para o vetor
 	private List<Integer> recuperaRota_proto(String message){
 		List<Integer> rota = new ArrayList<Integer>();
 		int count = 0;
 		char messageArray[] = message.toCharArray();
-		
+
 		for(char c : messageArray){
 			if(c == '#'){
 				count++;
 				String numString = "";
 				Integer numero;
-				
+
 				while(messageArray[count] != '#' && messageArray[count] != '$'){
 					numString = numString + messageArray[count];
 					count++;
 				}
 				numero = Integer.parseInt(numString);
-				
+
 				rota.add(numero);
 			}
 		}
@@ -438,21 +632,21 @@ public class GridActivity extends ActionBarActivity implements OnClickListener {
 	//converte rota para a string de salvar
 	private String converteRota_save (List<Integer> mRoute){
 		String rota = "";
-		
+
 		for(Integer x: mRoute){
 			rota = rota + "#" + x;
 		}
 		rota = rota + "$";
 		return rota;
 	}
-	
+
 	//converte a rota para enviar
 	private String converteRota_proto (List<Integer> mRoute){
 		String rota = "";
 		String direcao = "";
 		int y = -1;
 		int count = 0;
-		
+
 		for(Integer x: mRoute){
 			if(mRoute.indexOf(x) == 0){
 				rota = rota + "F";
@@ -480,7 +674,7 @@ public class GridActivity extends ActionBarActivity implements OnClickListener {
 					count++;
 					y = x;
 				}
-				
+
 				//caso a rota mude de direção
 				//caso vire para a direita
 				else if(x - y == -10 && direcao.equals("esquerda")){
@@ -507,7 +701,7 @@ public class GridActivity extends ActionBarActivity implements OnClickListener {
 					count = 1;		
 					y = x;			
 				}
-				
+
 				//caso vire para a esquerda
 				else if(x - y == 10 && direcao.equals("esquerda")){
 					direcao = "baixo";
