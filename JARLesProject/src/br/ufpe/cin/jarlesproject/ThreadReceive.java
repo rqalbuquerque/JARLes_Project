@@ -33,11 +33,17 @@ public class ThreadReceive extends Thread {
 	public void run() {
 		while(true){
 			try {
-				aux = aux + ((char) inStream.read());
+				char b = ((char) inStream.read());
+				System.out.println("Char: " + b);
+				aux = aux + b;				
+				
 				//inStream.read(strRotaBuffer);
 				
 				//mStrRec.concat(strRotaBuffer.toString());
 				mBuffer.insertMess(aux);
+				
+				if(b == '$')
+					break;
 				
 				//System.out.println("AQUI " + (char) inStream.read());
 			} catch (Exception e) {

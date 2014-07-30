@@ -54,7 +54,7 @@ public class GridActivity extends ActionBarActivity implements OnClickListener {
 	Button btSend, btRec, btConect, btDesconect;
 	private String mStrRec;
 	private String mStrSendç;
-	private BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();;
+	private BluetoothAdapter mBluetoothAdapter;
 	private Set<BluetoothDevice> mPairedDevices; 
 	private BluetoothSocket mBtSocket = null;
 	private OutputStream outStream = null;
@@ -229,6 +229,7 @@ public class GridActivity extends ActionBarActivity implements OnClickListener {
 		String proto_inicial = converteRota_proto(mRoute);
 		List<Integer> novaRota = new ArrayList<Integer>();
 		int count = 0;
+		System.out.println(menssagem);
 
 		if(proto_inicial.compareTo(menssagem) != 0){
 			for(char c : menssagem.toCharArray()){
@@ -237,8 +238,13 @@ public class GridActivity extends ActionBarActivity implements OnClickListener {
 					count = count + Character.getNumericValue(prox);
 				}
 			}
+			if((menssagem.charAt(menssagem.length() - 2) == 'E') || (menssagem.charAt(menssagem.length() - 2) == 'D')){
+				System.out.println("entrou no if ");
+				count = count + 1;
+			}
 			
 			int indexObstaculo = mRoute.get(count);
+			System.out.println("indice em " + count);
 			System.out.println("Obstaculo em " + indexObstaculo);
 			obstaculos.add(indexObstaculo);
 			finalIndex = mRoute.get(mRoute.size()-1);
@@ -313,12 +319,6 @@ public class GridActivity extends ActionBarActivity implements OnClickListener {
 			});
 			AlertDialog alertDialog = alertDialogBuilder.create();
 			alertDialog.show();
-
-			if(T1 != null){
-				T1.destroy();
-				T1 = null;			
-			}
-			
 		}
 		else{
 			//informa ao usuario que a rota foi concluida com sucesso
@@ -345,9 +345,12 @@ public class GridActivity extends ActionBarActivity implements OnClickListener {
 	@Override
 	public void onPause() {
 		super.onPause();  // Always call the superclass method first
-		T1.destroy();
-		T1 = null;
-		desconect();
+		
+		if(T1 != null){
+			T1.destroy();
+			T1 = null;
+			desconect();
+		}
 	}
 
 	@Override
@@ -362,7 +365,7 @@ public class GridActivity extends ActionBarActivity implements OnClickListener {
 		return super.onOptionsItemSelected(item);
 	}
 
-	public void executeRoute(){
+	public void executeRoute() throws InterruptedException{
 		
 		if(mBtSocket != null){
 			try {
@@ -384,24 +387,27 @@ public class GridActivity extends ActionBarActivity implements OnClickListener {
 		}
 		
 		T1 = new ThreadReceive(mBtSocket,mBuffer);
-		T1.start();
-		System.out.println("Apos criar a thread");
-		
+		T1.start();				
+		T1.join();
+				
 		if(mBuffer.getLenght() > 0){
 			System.out.println(mBuffer.removeMess());
 			obstaculo(mBuffer.removeMess());
 			mBuffer.clear();
 		}
+		
 	}
 
 	public void conect(){
+		mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+		
 		//Conecta-se com dispositivo já pareado			
 		//Checa se o bluetooth está disponivel
 		//mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 		if(mBluetoothAdapter == null){
 			Toast.makeText(context, "Bluetooth não está disponivel!", Toast.LENGTH_SHORT).show();
 		}
-
+			
 		//Checa se o bluetooth está habilitado
 		if (!mBluetoothAdapter.isEnabled()) {
 			Toast.makeText(context, "Ligando bluetooth", Toast.LENGTH_SHORT).show();
@@ -420,8 +426,6 @@ public class GridActivity extends ActionBarActivity implements OnClickListener {
 				}
 			}
 		}
-
-		//System.out.println("Dispositivo de conexao: " + mDeviceBluetooth.getName());
 
 		if(mDeviceBluetooth != null){
 			try{
@@ -472,6 +476,9 @@ public class GridActivity extends ActionBarActivity implements OnClickListener {
 				System.out.println("Exception gerada: " + e);
 			}
 		}
+		else{
+			Toast.makeText(context, "Dispositivo não conectado!", Toast.LENGTH_SHORT).show();
+		}
 	}
 
 	public void clear(){
@@ -521,7 +528,12 @@ public class GridActivity extends ActionBarActivity implements OnClickListener {
 		switch (v.getId()) {
 
 		case R.id.execute:
-			executeRoute();
+			try {
+				executeRoute();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			break;
 
 		case R.id.save:
@@ -532,7 +544,7 @@ public class GridActivity extends ActionBarActivity implements OnClickListener {
 			conect();
 			break;
 
-		case R.id.desconect:  //Desconecta-se do bluetooth
+		case R.id.desconect: 
 			desconect();
 			break;
 
@@ -542,7 +554,6 @@ public class GridActivity extends ActionBarActivity implements OnClickListener {
 		}
 
 	}
-
 
 	//Método que retorna do startActivityForResult com os códigos de resultado
 	//Usado para habilitar o bluetooth
