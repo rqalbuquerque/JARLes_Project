@@ -991,6 +991,7 @@ containing a value of this type.
         public static final int button_background_green=0x7f02005e;
         public static final int ic_launcher=0x7f02005f;
         public static final int item_background=0x7f020060;
+        public static final int labirint_background=0x7f020061;
     }
     public static final class id {
         public static final int about_button=0x7f050046;
