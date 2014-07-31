@@ -233,8 +233,9 @@ int drawable background_position 0x7f02005a
 int drawable background_selected 0x7f02005b
 int drawable background_start 0x7f02005c
 int drawable blue_background 0x7f02005d
-int drawable ic_launcher 0x7f02005e
-int drawable item_background 0x7f02005f
+int drawable button_background_green 0x7f02005e
+int drawable ic_launcher 0x7f02005f
+int drawable item_background 0x7f020060
 int id about_button 0x7f050046
 int id action_bar 0x7f05001c
 int id action_bar_activity_content 0x7f050015

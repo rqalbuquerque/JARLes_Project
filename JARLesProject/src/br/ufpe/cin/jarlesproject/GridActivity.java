@@ -41,6 +41,7 @@ public class GridActivity extends ActionBarActivity implements OnClickListener {
 	private int mDarkColor;
 	private int finalIndex;
 	private int atualIndex = -1;
+	private int ultimoObstaculo;
 	private float w = 0, h = 0;
 	private List<Integer> mRoute = new ArrayList<Integer>();
 	private List<Integer> obstaculos = new ArrayList<Integer>();
@@ -247,6 +248,7 @@ public class GridActivity extends ActionBarActivity implements OnClickListener {
 			System.out.println("indice em " + count);
 			System.out.println("Obstaculo em " + indexObstaculo);
 			obstaculos.add(indexObstaculo);
+			ultimoObstaculo = indexObstaculo;
 			finalIndex = mRoute.get(mRoute.size()-1);
 
 			for(int x: mRoute){
@@ -374,7 +376,47 @@ public class GridActivity extends ActionBarActivity implements OnClickListener {
 				System.out.println("Exception(Send): " + e);
 			}
 
-			byte[] strRotaBuffer = converteRota_proto (mRoute).getBytes();
+			String protocolo = "";
+			if(mRoute.get(0) == atualIndex){
+				if(atualIndex - ultimoObstaculo == 10){
+					if(mRoute.get(0) - mRoute.get(1) == -1){
+						protocolo = "D" + converteRota_proto(mRoute);
+					}
+					if(mRoute.get(0) - mRoute.get(1) == 1){
+						protocolo = "E" + converteRota_proto(mRoute);
+					}
+				}	
+				if(atualIndex - ultimoObstaculo == -1){
+					if(mRoute.get(0) - mRoute.get(1) == -10){
+						protocolo = "D" + converteRota_proto(mRoute);
+					}
+					if(mRoute.get(0) - mRoute.get(1) == 10){
+						protocolo = "E" + converteRota_proto(mRoute);
+					}
+				}
+				if(atualIndex - ultimoObstaculo == -10){
+					if(mRoute.get(0) - mRoute.get(1) == 1){
+						protocolo = "D" + converteRota_proto(mRoute);
+					}
+					if(mRoute.get(0) - mRoute.get(1) == -1){
+						protocolo = "E" + converteRota_proto(mRoute);
+					}
+				}	
+				if(atualIndex - ultimoObstaculo == 1){
+					if(mRoute.get(0) - mRoute.get(1) == 10){
+						protocolo = "D" + converteRota_proto(mRoute);
+					}
+					if(mRoute.get(0) - mRoute.get(1) == -10){
+						protocolo = "E" + converteRota_proto(mRoute);
+					}
+				}			
+			}
+			else{
+				protocolo = converteRota_proto(mRoute);
+			}
+
+			byte[] strRotaBuffer = protocolo.getBytes();
+			
 			try {
 				Toast.makeText(this.getBaseContext(), "Rota Enviada", Toast.LENGTH_SHORT).show();
 				outStream.write(strRotaBuffer);

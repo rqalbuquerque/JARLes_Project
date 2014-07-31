@@ -988,8 +988,9 @@ containing a value of this type.
         public static final int background_selected=0x7f02005b;
         public static final int background_start=0x7f02005c;
         public static final int blue_background=0x7f02005d;
-        public static final int ic_launcher=0x7f02005e;
-        public static final int item_background=0x7f02005f;
+        public static final int button_background_green=0x7f02005e;
+        public static final int ic_launcher=0x7f02005f;
+        public static final int item_background=0x7f020060;
     }
     public static final class id {
         public static final int about_button=0x7f050046;

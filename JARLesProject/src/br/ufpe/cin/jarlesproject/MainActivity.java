@@ -7,9 +7,12 @@ import java.util.Set;
 import java.util.UUID;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -29,6 +32,7 @@ public class MainActivity extends ActionBarActivity {
 
 	
 	public final static String EXTRA_MESSAGE = "com.example.myfirstapp.MESSAGE";
+	final Context context = this;
 	//Método de criação da atividade, 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -48,11 +52,25 @@ public class MainActivity extends ActionBarActivity {
 		Intent i = new Intent(this, GridActivity.class);
 		startActivity(i);
 	}
-	
+
 	//Ao clicar em "new grid" este método é chamado
 	public void load_grid(View view){
 		Intent i = new Intent(this, LoadActivity.class);
 		startActivity(i);
+	}
+	
+	//Ao clicar em "new grid" este método é chamado
+	public void about(View view){
+		//informa ao usuario que a rota foi concluida com sucesso
+		AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(context);
+		alertDialogBuilder.setTitle("JARLes");
+		alertDialogBuilder.setMessage("Aplicativo desenvolvido por: Arthur Rodrigues e Renato Albuquerque");
+		alertDialogBuilder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+			public void onClick(DialogInterface arg0, int arg1) {
+			}
+		});
+		AlertDialog alertDialog = alertDialogBuilder.create();
+		alertDialog.show();
 	}	
 	
 	@Override
